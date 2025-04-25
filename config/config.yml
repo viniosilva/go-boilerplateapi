@@ -1,0 +1,13 @@
+app:
+  name: boilerplate
+  env: dev
+  host: "localhost"
+  port: 8000
+  timeoutSec: 10
+
+db:
+  host: localhost
+  port: 5432
+  user: boilerplateapi
+  dbname: boilerplate
+  sslMode: disable

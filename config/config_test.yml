@@ -1,0 +1,6 @@
+app:
+  env: test
+  port: 8001
+
+db:
+  port: 5433

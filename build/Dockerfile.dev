@@ -1,0 +1,10 @@
+FROM golang:1.24.1-alpine
+
+WORKDIR /app
+RUN apk add --no-cache git curl make
+
+COPY Makefile .env ./
+RUN make install-hot-reload
+
+COPY . .
+CMD ["air"]

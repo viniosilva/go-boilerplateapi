@@ -1,0 +1,7 @@
+services:
+  db:
+    container_name: go-boilerplate_test_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - /var/lib/postgresql/data

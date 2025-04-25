@@ -1,0 +1,10 @@
+
+pre-commit:
+  parallel: true
+  commands:
+    go-fmt:
+      run: go fmt ./...
+    go-lint:
+      run: make lint
+    go-test:
+      run: make test
