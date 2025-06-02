@@ -16,10 +16,10 @@ type Container struct {
 func New(db *gorm.DB) *Container {
 	customerRepo := customerRepo.NewCustomerRepository(db)
 
-	customersUseCaseCreate := customerUseCase.NewCustomersUseCaseCreate(customerRepo)
+	customersUseCaseCreate := customerUseCase.NewCustomerUseCaseCreate(customerRepo)
 	customerHandlerCreate := customerHandler.NewCustomerHandlerCreate(customersUseCaseCreate)
 
-	customersUseCaseList := customerUseCase.NewCustomersUseCaseList(customerRepo)
+	customersUseCaseList := customerUseCase.NewCustomerUseCaseList(customerRepo)
 	customerHandlerList := customerHandler.NewCustomerHandlerList(customersUseCaseList)
 
 	return &Container{

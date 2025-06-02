@@ -26,7 +26,7 @@ func TestCustomerHandlerCreate_Handle(t *testing.T) {
 	defer ctrl.Finish()
 
 	customerRepositoryMock := mock.NewMockCustomerRepository(ctrl)
-	customersUseCaseList := usecase.NewCustomersUseCaseCreate(customerRepositoryMock)
+	customersUseCaseList := usecase.NewCustomerUseCaseCreate(customerRepositoryMock)
 	h := customer.NewCustomerHandlerCreate(customersUseCaseList)
 
 	t.Run("should create customer successfully", func(t *testing.T) {

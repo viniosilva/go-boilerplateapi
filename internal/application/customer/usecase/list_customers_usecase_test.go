@@ -23,7 +23,7 @@ func TestCustomersUseCaseList_Execute(t *testing.T) {
 
 	t.Run("should list customers successfully", func(t *testing.T) {
 		ctx := context.Background()
-		useCase := usecase.NewCustomersUseCaseList(customerRepositoryMock)
+		useCase := usecase.NewCustomerUseCaseList(customerRepositoryMock)
 
 		expected := pagination.Pagination[dto.Customer]{
 			Data: []dto.Customer{
@@ -62,7 +62,7 @@ func TestCustomersUseCaseList_Execute(t *testing.T) {
 
 	t.Run("should throw an error on create customer", func(t *testing.T) {
 		ctx := context.Background()
-		useCase := usecase.NewCustomersUseCaseList(customerRepositoryMock)
+		useCase := usecase.NewCustomerUseCaseList(customerRepositoryMock)
 
 		expectedErr := "error creating customer"
 
@@ -83,7 +83,7 @@ func BenchmarkCustomersUseCaseList_Execute(b *testing.B) {
 
 	customerRepositoryMock := mock.NewMockCustomerRepository(ctrl)
 
-	useCase := usecase.NewCustomersUseCaseList(customerRepositoryMock)
+	useCase := usecase.NewCustomerUseCaseList(customerRepositoryMock)
 
 	params := pagination.Params{Page: 1, Limit: 10}
 

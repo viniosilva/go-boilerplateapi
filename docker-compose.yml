@@ -1,6 +1,5 @@
 services:
   api:
-    container_name: go-boilerplate_api
     build:
       context: .
       dockerfile: build/Dockerfile.dev
@@ -14,11 +13,18 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - type: bind
+        source: .
+        target: /app
+        consistency: cached
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: "go-boilerplateapi-api"
 
   db:
     image: postgres:17-alpine
-    container_name: go-boilerplate_db
     restart: always
     ports:
       - "5432:5432"
@@ -35,13 +41,90 @@ services:
   
   migrate:
     image: migrate/migrate
-    container_name: go-boilerplate_migrate
     volumes:
       - ./internal/infrastructure/migrations:/migrations
     entrypoint: [ "migrate" ]
     depends_on:
       db:
         condition: service_healthy
+  
+  tempo:
+    image: grafana/tempo:latest
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - ./internal/infrastructure/telemetry/tempo-config.yml:/etc/tempo.yml
+      - tempo-data:/tmp/tempo
+    ports:
+      - "3200:3200"  # Tempo HTTP API
+    user: "10001:10001"
+  
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    volumes:
+      - jaeger-data:/var/lib/jaeger
+    ports:
+      - "16686:16686" 
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./internal/infrastructure/telemetry/prometheus-config.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"  # Prometheus UI
+  
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/local-config.yml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./internal/infrastructure/telemetry/loki-config.yml:/etc/loki/local-config.yml
+      - loki-data:/loki
+
+  fluentbit:
+    image: cr.fluentbit.io/fluent/fluent-bit:latest
+    volumes:
+      - ./internal/infrastructure/telemetry/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - ./internal/infrastructure/telemetry/parsers.conf:/fluent-bit/etc/parsers.conf
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - fluentbit-data:/etc/data
+    depends_on:
+      - loki
+    ports:
+      - "24224:24224"
+  
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./internal/infrastructure/telemetry/otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4317:4317"  # OTLP gRPC receiver
+      - "8889:8889"  # Prometheus receiver
+    depends_on:
+      - tempo
+      - jaeger
+      - prometheus
+  
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - tempo
+      - loki
 
 volumes:
   pgdata:
+  tempo-data:
+  jaeger-data:
+  prometheus-data:
+  loki-data:
+  fluentbit-data:
+  grafana-data:

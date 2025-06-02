@@ -8,6 +8,9 @@ type Config struct {
 		Port       string
 		TimeoutSec int
 	}
+	Swagger struct {
+		Addr string
+	}
 	DB struct {
 		Host     string
 		Port     string
@@ -15,5 +18,13 @@ type Config struct {
 		User     string
 		Password string
 		SslMode  string
+	}
+	Otel struct {
+		Traces struct {
+			Endpoint string
+		}
+		Metrics struct {
+			Endpoint string
+		}
 	}
 }

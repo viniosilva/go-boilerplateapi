@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 
+	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -12,9 +13,11 @@ func NewGorm(host, port, dbName, username, password, sslMode string) (*gorm.DB, 
 		host, port, dbName, username, password, sslMode,
 	)
 
-	fmt.Println(dsn)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
+		return nil, err
+	}
+	if err := db.Use(otelgorm.NewPlugin()); err != nil {
 		return nil, err
 	}
 

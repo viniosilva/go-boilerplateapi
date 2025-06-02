@@ -2,28 +2,41 @@ package customer
 
 import (
 	"context"
+	"fmt"
 
 	domain "github.com/viniosilva/go-boilerplateapi/internal/domain/customer"
 	"github.com/viniosilva/go-boilerplateapi/pkg/pagination"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 
 	"gorm.io/gorm"
 )
 
 type customerRepository struct {
-	db *gorm.DB
+	db     *gorm.DB
+	tracer trace.Tracer
+	name   string
 }
 
 func NewCustomerRepository(db *gorm.DB) *customerRepository {
 	return &customerRepository{
-		db: db,
+		db:     db,
+		tracer: otel.Tracer("Repository"),
+		name:   "CustomerRepository",
 	}
 }
 
 func (r *customerRepository) Save(ctx context.Context, customer *domain.Customer) error {
+	ctx, span := r.tracer.Start(ctx, fmt.Sprintf("%s.Save", r.name))
+	defer span.End()
+
 	return r.db.WithContext(ctx).Save(customer).Error
 }
 
 func (r *customerRepository) List(ctx context.Context, params pagination.Params) (pagination.Pagination[domain.Customer], error) {
+	ctx, span := r.tracer.Start(ctx, fmt.Sprintf("%s.List", r.name))
+	defer span.End()
+
 	db := r.db.WithContext(ctx)
 
 	params.Normalize()

@@ -1,22 +1,31 @@
 package customer
 
 import (
+	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/viniosilva/go-boilerplateapi/internal/application/customer/usecase"
+	_otel "github.com/viniosilva/go-boilerplateapi/pkg/otel"
 	"github.com/viniosilva/go-boilerplateapi/pkg/pagination"
 )
 
 type CustomerHandlerList struct {
-	useCase *usecase.CustomersUseCaseList
+	useCase *usecase.CustomerUseCaseList
+	tracer  trace.Tracer
+	name    string
 }
 
-func NewCustomerHandlerList(useCase *usecase.CustomersUseCaseList) *CustomerHandlerList {
+func NewCustomerHandlerList(useCase *usecase.CustomerUseCaseList) *CustomerHandlerList {
 	return &CustomerHandlerList{
 		useCase: useCase,
+		tracer:  otel.Tracer("Handler"),
+		name:    "CustomerHandlerList",
 	}
 }
 
@@ -33,10 +42,15 @@ func NewCustomerHandlerList(useCase *usecase.CustomersUseCaseList) *CustomerHand
 // @Failure 500 {object} ErrorResponse
 // @Router /customers [get]
 func (h *CustomerHandlerList) Handle(c echo.Context) error {
+	ctx := c.Request().Context()
+	slog.InfoContext(ctx, "CustomerHandlerList.Handle", _otel.OtelLog(ctx)...)
+	ctx, span := h.tracer.Start(c.Request().Context(), fmt.Sprintf("%s.Handle", h.name))
+	defer span.End()
+
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
 
-	res, err := h.useCase.Execute(c.Request().Context(), pagination.Params{
+	res, err := h.useCase.Execute(ctx, pagination.Params{
 		Page:  page,
 		Limit: limit,
 	})

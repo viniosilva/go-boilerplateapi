@@ -50,7 +50,7 @@ func setup() {
 	}
 
 	di := container.New(dbConn)
-	server = api.NewServer(di, cfg.App.Host, cfg.App.Port, time.Second*time.Duration(cfg.App.TimeoutSec))
+	server = api.NewServer(di, cfg.App.Name, cfg.App.Host, cfg.App.Port, cfg.Swagger.Addr, time.Second*time.Duration(cfg.App.TimeoutSec))
 	baseUrl = fmt.Sprintf("http://%s/api", server.Addr)
 
 	go func() {

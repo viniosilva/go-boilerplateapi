@@ -3,3 +3,9 @@ app:
 
 db:
   host: db
+
+otel:
+  traces:
+    endpoint: otel-collector:4317
+  metrics:
+    endpoint: otel-collector:4317

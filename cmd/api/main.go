@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"time"
@@ -11,6 +13,7 @@ import (
 	"github.com/viniosilva/go-boilerplateapi/internal/container"
 	"github.com/viniosilva/go-boilerplateapi/internal/infrastructure/api"
 	"github.com/viniosilva/go-boilerplateapi/internal/infrastructure/db"
+	"github.com/viniosilva/go-boilerplateapi/pkg/otel"
 )
 
 // @title Ipanema Box API
@@ -18,10 +21,24 @@ import (
 // @description API management for customers and services
 // @BasePath /api
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("config.LoadConfig: %v", err)
 	}
+
+	otelShutdown, err := otel.SetupOTelSDK(ctx, cfg.App.Name, cfg.Otel.Traces.Endpoint, cfg.Otel.Metrics.Endpoint)
+	if err != nil {
+		log.Fatalf("otel.SetupOTelSDK: %v", err)
+	}
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
 
 	dbConn, err := db.NewGorm(cfg.DB.Host, cfg.DB.Port, cfg.DB.DBName,
 		cfg.DB.User, cfg.DB.Password, cfg.DB.SslMode,
@@ -32,28 +49,23 @@ func main() {
 	defer db.Close(dbConn)
 
 	di := container.New(dbConn)
-	server := api.NewServer(di, cfg.App.Host, cfg.App.Port, time.Second*time.Duration(cfg.App.TimeoutSec))
+	srv := api.NewServer(di, cfg.App.Name, cfg.App.Host, cfg.App.Port, cfg.Swagger.Addr, time.Second*time.Duration(cfg.App.TimeoutSec))
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
+	srvErr := make(chan error, 1)
 
 	go func() {
-		log.Printf("api listening: %s", server.Addr)
-
-		if err = server.ListenAndServe(); err != nil {
-			log.Fatalf("http.ListenAndServe: %v", err)
-		}
+		slog.Info("api listening", slog.String("address", srv.Addr))
+		srvErr <- srv.ListenAndServe()
 	}()
 
-	<-quit
-	log.Println("server closing")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("server.Shutdown: %v", err)
+	select {
+	case err = <-srvErr:
+		log.Fatalf("srv.ListenAndServe: %v", err)
+	case <-ctx.Done():
+		stop()
 	}
+
+	err = srv.Shutdown(context.Background())
 
 	log.Println("server closed successfully")
 }

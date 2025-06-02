@@ -25,7 +25,7 @@ func TestCustomerHandlerList_Handle(t *testing.T) {
 	defer ctrl.Finish()
 
 	customerRepositoryMock := mock.NewMockCustomerRepository(ctrl)
-	customersUseCaseList := usecase.NewCustomersUseCaseList(customerRepositoryMock)
+	customersUseCaseList := usecase.NewCustomerUseCaseList(customerRepositoryMock)
 	h := customer.NewCustomerHandlerList(customersUseCaseList)
 
 	t.Run("should list customers successfully", func(t *testing.T) {

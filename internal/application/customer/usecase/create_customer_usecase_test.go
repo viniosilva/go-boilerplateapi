@@ -22,7 +22,7 @@ func TestCustomersUseCaseCreate_Execute(t *testing.T) {
 
 	t.Run("should create customer successfully", func(t *testing.T) {
 		ctx := context.Background()
-		useCase := usecase.NewCustomersUseCaseCreate(customerRepositoryMock)
+		useCase := usecase.NewCustomerUseCaseCreate(customerRepositoryMock)
 
 		input := dto.CreateCustomerInput{
 			FirstName: "John",
@@ -51,7 +51,7 @@ func TestCustomersUseCaseCreate_Execute(t *testing.T) {
 
 	t.Run("should throw an error on create customer", func(t *testing.T) {
 		ctx := context.Background()
-		useCase := usecase.NewCustomersUseCaseCreate(customerRepositoryMock)
+		useCase := usecase.NewCustomerUseCaseCreate(customerRepositoryMock)
 
 		input := dto.CreateCustomerInput{
 			FirstName: "John",
@@ -77,7 +77,7 @@ func BenchmarkCustomersUseCaseCreate_Execute(b *testing.B) {
 
 	customerRepositoryMock := mock.NewMockCustomerRepository(ctrl)
 
-	useCase := usecase.NewCustomersUseCaseCreate(customerRepositoryMock)
+	useCase := usecase.NewCustomerUseCaseCreate(customerRepositoryMock)
 
 	input := dto.CreateCustomerInput{
 		FirstName: "John",

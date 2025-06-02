@@ -5,9 +5,18 @@ app:
   port: 8000
   timeoutSec: 10
 
+swagger:
+  addr: "localhost:8000"
+
 db:
   host: localhost
   port: 5432
   user: boilerplateapi
   dbname: boilerplate
   sslMode: disable
+
+otel:
+  traces:
+    endpoint: localhost:4317
+  metrics:
+    endpoint: localhost:4317
