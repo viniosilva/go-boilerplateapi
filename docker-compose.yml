@@ -33,12 +33,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 5s
-  
+
   migrate:
     image: migrate/migrate
     volumes:
@@ -47,23 +47,23 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  
+
   tempo:
     image: grafana/tempo:latest
-    command: ["-config.file=/etc/tempo.yml"]
+    command: [ "-config.file=/etc/tempo.yml" ]
     volumes:
       - ./internal/infrastructure/telemetry/tempo-config.yml:/etc/tempo.yml
       - tempo-data:/tmp/tempo
     ports:
-      - "3200:3200"  # Tempo HTTP API
+      - "3200:3200" # Tempo HTTP API
     user: "10001:10001"
-  
+
   jaeger:
     image: jaegertracing/all-in-one:latest
     volumes:
       - jaeger-data:/var/lib/jaeger
     ports:
-      - "16686:16686" 
+      - "16686:16686"
 
   prometheus:
     image: prom/prometheus:latest
@@ -71,8 +71,8 @@ services:
       - ./internal/infrastructure/telemetry/prometheus-config.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
     ports:
-      - "9090:9090"  # Prometheus UI
-  
+      - "9090:9090" # Prometheus UI
+
   loki:
     image: grafana/loki:latest
     command: -config.file=/etc/loki/local-config.yml
@@ -81,6 +81,11 @@ services:
     volumes:
       - ./internal/infrastructure/telemetry/loki-config.yml:/etc/loki/local-config.yml
       - loki-data:/loki
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://loki:3100/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   fluentbit:
     image: cr.fluentbit.io/fluent/fluent-bit:latest
@@ -90,23 +95,24 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - fluentbit-data:/etc/data
     depends_on:
-      - loki
+      loki:
+        condition: service_healthy
     ports:
       - "24224:24224"
-  
+
   otel-collector:
     image: otel/opentelemetry-collector:latest
-    command: ["--config=/etc/otel-collector-config.yml"]
+    command: [ "--config=/etc/otel-collector-config.yml" ]
     volumes:
       - ./internal/infrastructure/telemetry/otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
-      - "4317:4317"  # OTLP gRPC receiver
-      - "8889:8889"  # Prometheus receiver
+      - "4317:4317" # OTLP gRPC receiver
+      - "8889:8889" # Prometheus receiver
     depends_on:
       - tempo
       - jaeger
       - prometheus
-  
+
   grafana:
     image: grafana/grafana:latest
     environment:
