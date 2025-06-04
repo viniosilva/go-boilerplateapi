@@ -69,6 +69,9 @@ up: migrate-up
 down:
 	docker compose down
 
+infra-up:
+	docker compose up -d --scale api=0
+
 swag:
 	swag init --parseDependency --parseInternal --generalInfo cmd/api/main.go --output docs/
 

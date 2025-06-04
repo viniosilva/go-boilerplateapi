@@ -1,8 +1,6 @@
 package customer
 
 import (
-	"fmt"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -11,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/viniosilva/go-boilerplateapi/internal/application/customer/usecase"
-	_otel "github.com/viniosilva/go-boilerplateapi/pkg/otel"
+	"github.com/viniosilva/go-boilerplateapi/pkg/logger"
 	"github.com/viniosilva/go-boilerplateapi/pkg/pagination"
 )
 
@@ -24,8 +22,7 @@ type CustomerHandlerList struct {
 func NewCustomerHandlerList(useCase *usecase.CustomerUseCaseList) *CustomerHandlerList {
 	return &CustomerHandlerList{
 		useCase: useCase,
-		tracer:  otel.Tracer("Handler"),
-		name:    "CustomerHandlerList",
+		tracer:  otel.Tracer("internal/presentation/api/handler/customer/list_customers_handler"),
 	}
 }
 
@@ -42,10 +39,10 @@ func NewCustomerHandlerList(useCase *usecase.CustomerUseCaseList) *CustomerHandl
 // @Failure 500 {object} ErrorResponse
 // @Router /customers [get]
 func (h *CustomerHandlerList) Handle(c echo.Context) error {
-	ctx := c.Request().Context()
-	slog.InfoContext(ctx, "CustomerHandlerList.Handle", _otel.OtelLog(ctx)...)
-	ctx, span := h.tracer.Start(c.Request().Context(), fmt.Sprintf("%s.Handle", h.name))
+	ctx, span := h.tracer.Start(c.Request().Context(), "CustomerHandlerList.Handle")
 	defer span.End()
+
+	logger.Info(ctx, "CustomerHandlerList.Handle")
 
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))

@@ -25,14 +25,30 @@ Configure variables environment
   cp .env.example .env
 ```
 
+Start infra
+
+```
+  make infra-up
+```
+
+Configure data sources using docker compose network:
+
+- Loki doc [[here]](https://grafana.com/docs/grafana/latest/datasources/loki/configure-loki-data-source/)
+- Tempo doc [[here]](https://grafana.com/docs/grafana/latest/datasources/tempo/configure-tempo-data-source/)
+- Prometheus doc [[here]](https://grafana.com/docs/grafana/latest/datasources/prometheus/configure-prometheus-data-source/)
+
 Start the server
 
 ```bash
   make dev
 ```
 
-Local swagger [[here]](http://localhost:8000/swagger/index.html)
+### Links
 
+- Local swagger UI [[here]](http://localhost:8000/swagger/index.html)
+- Local grafana UI [[here]](http://localhost:3000)
+- Local jaeger UI [[here]](http://localhost:9090)
+- Local prometheus UI [[here]](http://localhost:16686)
 
 ## Running Tests
 

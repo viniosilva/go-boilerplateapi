@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/viniosilva/go-boilerplateapi/internal/application/customer/dto"
 	"github.com/viniosilva/go-boilerplateapi/internal/domain/customer"
@@ -14,19 +13,17 @@ import (
 type CustomerUseCaseList struct {
 	repo   customer.CustomerRepository
 	tracer trace.Tracer
-	name   string
 }
 
 func NewCustomerUseCaseList(repo customer.CustomerRepository) *CustomerUseCaseList {
 	return &CustomerUseCaseList{
 		repo:   repo,
-		tracer: otel.Tracer("UseCase"),
-		name:   "CustomerUseCaseList",
+		tracer: otel.Tracer("internal/application/customer/usecase/list_customers_usecase"),
 	}
 }
 
 func (uc *CustomerUseCaseList) Execute(ctx context.Context, params pagination.Params) (pagination.Pagination[dto.Customer], error) {
-	ctx, span := uc.tracer.Start(ctx, fmt.Sprintf("%s.Execute", uc.name))
+	ctx, span := uc.tracer.Start(ctx, "CustomerUseCaseList.Execute")
 	defer span.End()
 
 	result, err := uc.repo.List(ctx, params)

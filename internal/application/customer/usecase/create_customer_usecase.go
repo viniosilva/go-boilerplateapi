@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/viniosilva/go-boilerplateapi/internal/application/customer/dto"
 	"github.com/viniosilva/go-boilerplateapi/internal/domain/customer"
@@ -15,23 +14,21 @@ type CustomerUseCaseCreate struct {
 	repo    customer.CustomerRepository
 	tracer  trace.Tracer
 	counter metric.Int64Counter
-	name    string
 }
 
 func NewCustomerUseCaseCreate(repo customer.CustomerRepository) *CustomerUseCaseCreate {
-	meter := otel.Meter("UseCase")
+	meter := otel.Meter("internal/application/customer/usecase/create_customer_usecase")
 	counter, _ := meter.Int64Counter("customer_created_total")
 
 	return &CustomerUseCaseCreate{
 		repo:    repo,
-		tracer:  otel.Tracer("UseCase"),
+		tracer:  otel.Tracer("internal/application/customer/usecase/create_customer_usecase"),
 		counter: counter,
-		name:    "CustomerUseCaseCreate",
 	}
 }
 
 func (uc *CustomerUseCaseCreate) Execute(ctx context.Context, input dto.CreateCustomerInput) (*dto.Customer, error) {
-	ctx, span := uc.tracer.Start(ctx, fmt.Sprintf("%s.Execute", uc.name))
+	ctx, span := uc.tracer.Start(ctx, "CustomerUseCaseCreate.Execute")
 	defer span.End()
 
 	customer := input.ToEntity()

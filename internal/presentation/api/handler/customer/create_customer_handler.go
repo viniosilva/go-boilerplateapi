@@ -1,7 +1,6 @@
 package customer
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -15,14 +14,12 @@ import (
 type CustomerHandlerCreate struct {
 	useCase *usecase.CustomerUseCaseCreate
 	tracer  trace.Tracer
-	name    string
 }
 
 func NewCustomerHandlerCreate(useCase *usecase.CustomerUseCaseCreate) *CustomerHandlerCreate {
 	return &CustomerHandlerCreate{
 		useCase: useCase,
-		tracer:  otel.Tracer("Handler"),
-		name:    "CustomerHandlerCreate",
+		tracer:  otel.Tracer("internal/presentation/api/handler/customer/create_customers_handler"),
 	}
 }
 
@@ -38,7 +35,7 @@ func NewCustomerHandlerCreate(useCase *usecase.CustomerUseCaseCreate) *CustomerH
 // @Failure 500 {object} ErrorResponse
 // @Router /customers [post]
 func (h *CustomerHandlerCreate) Handle(c echo.Context) error {
-	ctx, span := h.tracer.Start(c.Request().Context(), fmt.Sprintf("%s.Handle", h.name))
+	ctx, span := h.tracer.Start(c.Request().Context(), "CustomerHandlerCreate.Handle")
 	defer span.End()
 
 	var input appDto.CreateCustomerInput

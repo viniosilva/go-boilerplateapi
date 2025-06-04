@@ -13,6 +13,7 @@ import (
 	"github.com/viniosilva/go-boilerplateapi/internal/container"
 	"github.com/viniosilva/go-boilerplateapi/internal/infrastructure/api"
 	"github.com/viniosilva/go-boilerplateapi/internal/infrastructure/db"
+	"github.com/viniosilva/go-boilerplateapi/pkg/logger"
 	"github.com/viniosilva/go-boilerplateapi/pkg/otel"
 )
 
@@ -23,9 +24,6 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -54,7 +52,7 @@ func main() {
 	srvErr := make(chan error, 1)
 
 	go func() {
-		slog.Info("api listening", slog.String("address", srv.Addr))
+		logger.Info(ctx, "api listening", slog.String("address", srv.Addr))
 		srvErr <- srv.ListenAndServe()
 	}()
 

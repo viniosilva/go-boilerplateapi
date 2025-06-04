@@ -2,7 +2,6 @@ package customer
 
 import (
 	"context"
-	"fmt"
 
 	domain "github.com/viniosilva/go-boilerplateapi/internal/domain/customer"
 	"github.com/viniosilva/go-boilerplateapi/pkg/pagination"
@@ -12,29 +11,28 @@ import (
 	"gorm.io/gorm"
 )
 
-type customerRepository struct {
+type CustomerRepository struct {
 	db     *gorm.DB
 	tracer trace.Tracer
 	name   string
 }
 
-func NewCustomerRepository(db *gorm.DB) *customerRepository {
-	return &customerRepository{
+func NewCustomerRepository(db *gorm.DB) *CustomerRepository {
+	return &CustomerRepository{
 		db:     db,
-		tracer: otel.Tracer("Repository"),
-		name:   "CustomerRepository",
+		tracer: otel.Tracer("internal/infrastructure/db/customer/customer_repository"),
 	}
 }
 
-func (r *customerRepository) Save(ctx context.Context, customer *domain.Customer) error {
-	ctx, span := r.tracer.Start(ctx, fmt.Sprintf("%s.Save", r.name))
+func (r *CustomerRepository) Save(ctx context.Context, customer *domain.Customer) error {
+	ctx, span := r.tracer.Start(ctx, "CustomerRepository.Save")
 	defer span.End()
 
 	return r.db.WithContext(ctx).Save(customer).Error
 }
 
-func (r *customerRepository) List(ctx context.Context, params pagination.Params) (pagination.Pagination[domain.Customer], error) {
-	ctx, span := r.tracer.Start(ctx, fmt.Sprintf("%s.List", r.name))
+func (r *CustomerRepository) List(ctx context.Context, params pagination.Params) (pagination.Pagination[domain.Customer], error) {
+	ctx, span := r.tracer.Start(ctx, "CustomerRepository.List")
 	defer span.End()
 
 	db := r.db.WithContext(ctx)

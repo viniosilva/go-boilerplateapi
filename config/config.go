@@ -1,10 +1,12 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
 	"github.com/spf13/viper"
+	"github.com/viniosilva/go-boilerplateapi/pkg/logger"
 )
 
 type Env string
@@ -25,6 +27,8 @@ type client struct {
 }
 
 func LoadConfig(options ...Option) (Config, error) {
+	ctx := context.Background()
+
 	c := &client{path: "."}
 	for _, opt := range options {
 		opt(c)
@@ -38,7 +42,7 @@ func LoadConfig(options ...Option) (Config, error) {
 	viper.SetConfigFile(fmt.Sprintf("%s/.env", c.path))
 	viper.AddConfigPath(".")
 	if err := viper.ReadInConfig(); err != nil {
-		slog.Warn("viper.ReadInConfig .env", slog.String("error", err.Error()))
+		logger.Warn(ctx, "viper.ReadInConfig .env", slog.String("error", err.Error()))
 	}
 
 	viper.SetConfigName("config")
@@ -53,7 +57,7 @@ func LoadConfig(options ...Option) (Config, error) {
 		if err := viper.MergeInConfig(); err != nil {
 			return Config{}, err
 		}
-		slog.Info("viper.MergeInConfig", slog.String("configName", configName))
+		logger.Info(ctx, "viper.MergeInConfig", slog.String("configName", configName))
 	}
 
 	var cfg Config
